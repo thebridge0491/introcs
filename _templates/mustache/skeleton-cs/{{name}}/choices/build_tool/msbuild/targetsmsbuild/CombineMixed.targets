@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="_BuildSubProjects" AfterTargets="BeforeBuild">
+	<ItemGroup>
+	  <SubProjects Include="src\fs\*.*proj;src\cs\*.*proj"/>
+	</ItemGroup>
+	<MSBuild Projects="@(SubProjects)"
+	  Properties="ParentProjectDir=$(ProjectDir)"/>
+  </Target>
+  <Target Name="_CombineModules"
+      Condition="Exists('$(TargetDir)$(AssemblyName).FSharp.netmodule')">
+    <ItemGroup>
+      <AddModules Include="$(TargetDir)$(AssemblyName).CSharp.netmodule"/>
+      <AddModules Include="$(TargetDir)$(AssemblyName).FSharp.netmodule"/>
+    </ItemGroup>
+    <Csc OutputAssembly="$(TargetDir)$(AssemblyName).dll"
+      Sources="src\cs\properties\AssemblyInfo.cs" References=""
+      AdditionalLibPaths="$(AdditionalLibPaths)" TargetType="$(OutputType)"
+      Optimize="$(Optimize)" DefineConstants="$(DefineConstants)"
+      EmitDebugInformation="$(DebugSymbols)" DebugType="$(DebugType)"
+      NoLogo="true" CheckForOverflowUnderflow="true" DelaySign="$(DelaySign)"
+      AddModules="@(AddModules)" KeyFile="$(AssemblyOriginatorKeyFile)"
+      DocumentationFile="$(TargetDir)$(AssemblyName).xml"/>
+  </Target>
+  <Target Name="_MergeAssemblies"
+      Condition="Exists('$(TargetDir)$(AssemblyName).FSharp.dll')">
+    <ItemGroup Condition=" '$(OutputType)' == 'exe' ">
+      <OtherAssemblies Include="$(TargetDir)$(AssemblyName).CSharp.exe"/>
+      <OtherAssemblies Include="$(TargetDir)$(AssemblyName).FSharp.dll"/>
+    </ItemGroup>
+    <ItemGroup Condition=" '$(OutputType)' == 'library' ">
+      <OtherAssemblies Include="$(TargetDir)$(AssemblyName).CSharp.dll"/>
+      <OtherAssemblies Include="$(TargetDir)$(AssemblyName).FSharp.dll"/>
+    </ItemGroup>
+    <Exec WorkingDirectory="$(TargetDir)" IgnoreExitCode="true"
+      Command="$(ExeLauncher) $(HOME)\nuget\packages\ILRepack\tools\ILRepack.exe /verbose /delaysign /keyfile:$(ProjectDir)$(AssemblyOriginatorKeyFile) /t:$(OutputType) /xmldocs /out:$(TargetPath) @(OtherAssemblies->'%(FullPath)', ' ')"/>
+  </Target>
+  <Target Name="Build"
+    DependsOnTargets="_BuildSubProjects;_CombineModules;_MergeAssemblies"/>
+</Project>
