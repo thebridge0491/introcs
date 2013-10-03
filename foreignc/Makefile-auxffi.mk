@@ -4,7 +4,7 @@ VPATH ?= .
 
 PKG_CONFIG = pkg-config --with-path=$(PREFIX)/lib/pkgconfig
 
-proj ?= Introcs.Intro
+proj ?= Introcs.Foreignc
 namespace_path ?= $(shell echo $(proj) | tr 'A-Z' 'a-z' | sed 'y|.|/|')
 
 ffi_libdir = $(shell $(PKG_CONFIG) --variable=libdir intro_c-practice || echo .)

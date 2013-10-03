@@ -4,18 +4,11 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 
-using Introcs.Intro;
+using Util = Introcs.Util.Library;
 
 [TestFixture]
 public class TcNew : Base.ClsBase {
     private float epsilon = 0.001f; //1.20e-7f;
-    
-    public bool InEpsilon(double a, double b, double tolerance = 0.001)
-    {
-		double delta = Math.Abs(tolerance);
-		//return (a - delta) <= b && (a + delta) >= b;
-		return !((a + delta) < b) && !((b + delta) < a);
-	}
 	
     [TestFixtureSetUp]
     public override void SetUpClass()
@@ -64,7 +57,7 @@ public class TcNew : Base.ClsBase {
 	    /*Assert.That(4.0f, Is.EqualTo(4.0f).Within(4.0f * epsilon), 
 	            "Floats constraint-based");*/
 	    //Assert.AreEqual(4.0f, 4.0f, 4.0f * epsilon, "Floats");
-	    Assert.True(InEpsilon(4.0f, 4.0f, epsilon * 4.0f), "Floats");
+	    Assert.True(Util.InEpsilon(4.0f, 4.0f, epsilon * 4.0f), "Floats");
 	}
 	
 	[Test] [Category("Tag1")]

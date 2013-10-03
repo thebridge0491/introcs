@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- To generate new guid, from C#: csharp -e 'System.Guid.NewGuid()' -->
     <!--   or from Python: python -c 'import uuid ; print(uuid.uuid4())' -->
-    <ProjectGuid>{427da3bc-c801-433e-a166-00c2344c031d}</ProjectGuid>
+    <ProjectGuid>{d2cf4b06-e6eb-4017-88fa-c0e7b7f9e720}</ProjectGuid>
     <!--<RootNamespace>Introcs.Util</RootNamespace>-->
     <AssemblyName>$(MSBuildProjectName)</AssemblyName>
     <OutputType Condition=" '$(OutputType)' == '' ">library</OutputType>
@@ -123,13 +123,6 @@
     <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true"
         Command="gacutil -root $(HOME)\.local\lib -package Mono.Options -i $(TargetDir)Mono.Options.dll"/>
   </Target>
-  <!--<Target Name="AuxFfi" DependsOnTargets="PrepareForBuild">
-    <PropertyGroup>
-      <MAKECMD Condition=" '$(MAKECMD)' == '' ">make</MAKECMD>
-    </PropertyGroup>
-    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true"
-        Command="$(MAKECMD) -B -f Makefile-auxffi.mk auxffi"/>
-  </Target>-->
   <!--<Target Name="Help" DependsOnTargets="PrepareForBuild">
     <Message Importance="High" Text="Visual Studio Version: $(VisualStudioVersion)"/>
     <Message Importance="High" Text="MS Build Bin Path: $(MSBuildBinPath)"/>

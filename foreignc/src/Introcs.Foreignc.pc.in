@@ -1,0 +1,12 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+assemblies_dir=${libdir}/mono/Introcs.Foreignc
+Libraries=${assemblies_dir}/Introcs.Foreignc.dll
+
+
+Name: Introcs.Foreignc
+Description: FFI sub-package for CSharp Intro examples project.
+URL: https://bitbucket.org/thebridge0491/introcs
+Version: 0.1.0
+Libs: -r:${Libraries}

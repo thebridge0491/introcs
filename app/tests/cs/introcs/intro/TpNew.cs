@@ -10,18 +10,11 @@ using FsCheck.Fluent;
 using PropertyAttribute = FsCheck.NUnit.PropertyAttribute;
 using MyArbitraries = Base.MyArbitraries;
 
-using Introcs.Intro;
+using Util = Introcs.Util.Library;
 
 [TestFixture]
 public class TpNew : Base.ClsBase {
     private double epsilon = 0.001; //1.20e-7;
-    
-    public bool InEpsilon(double a, double b, double tolerance = 0.001)
-    {
-		double delta = Math.Abs(tolerance);
-		//return (a - delta) <= b && (a + delta) >= b;
-		return !((a + delta) < b) && !((b + delta) < a);
-	}
     /*
     public override void Dispose()
     {
@@ -42,7 +35,7 @@ public class TpNew : Base.ClsBase {
 	{
 		Func<int, int, int, bool> func = (x, y, z) => {
 			double a = (double)x; double b = (double)y; double c = (double)z;
-			return InEpsilon((a + b) + c, a + (b + c),
+			return Util.InEpsilon((a + b) + c, a + (b + c),
 			    epsilon * ((a + b) + c));
 			};
 		Spec.ForAny<int, int, int>(func).QuickCheckThrowOnFailure();
@@ -85,7 +78,7 @@ public class TpNew : Base.ClsBase {
 		Func<FsCheck.NonEmptyArray<FsCheck.NormalFloat>, bool> func = xs => {
 			double[] ys = xs.Get.Select(e => e.Get).ToArray();
 			Array.Sort(ys);
-			return InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
+			return Util.InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
 			};
 		Spec.ForAny<FsCheck.NonEmptyArray<FsCheck.NormalFloat>>(
 		    func).QuickCheckThrowOnFailure();
@@ -97,7 +90,7 @@ public class TpNew : Base.ClsBase {
 		Func<IEnumerable<double>, bool> func = xs => {
 			double[] ys = xs.Select(e => e).ToArray();
 			Array.Sort(ys);
-			return InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
+			return Util.InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
 			};
 		DefaultArbitraries.Add<MyArbitraries>();
 		Spec.ForAny<IEnumerable<double>>(func).QuickCheckThrowOnFailure();
@@ -114,7 +107,7 @@ public class TpNew : Base.ClsBase {
 	public bool AssocAddProp(int x, int y, int z)
 	{
 		double a = (double)x; double b = (double)y; double c = (double)z;
-		return InEpsilon((a + b) + c, a + (b + c), epsilon * ((a + b) + c));
+		return Util.InEpsilon((a + b) + c, a + (b + c), epsilon * ((a + b) + c));
 	}
 	
 	[Property] [Category("Tag3")]
@@ -144,7 +137,7 @@ public class TpNew : Base.ClsBase {
 	{
 		double[] ys = xs.Get.Select(e => e.Get).ToArray();
 		Array.Sort(ys);
-		return InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
+		return Util.InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
 	}
 	
 	[Property(Arbitrary = new[] { typeof(MyArbitraries) })] [Category("Tag3")]
@@ -152,7 +145,7 @@ public class TpNew : Base.ClsBase {
 	{
 		double[] ys = xs.Select(e => e).ToArray();
 		Array.Sort(ys);
-		return InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
+		return Util.InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
 	}
 }
 
