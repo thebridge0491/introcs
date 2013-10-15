@@ -12,7 +12,7 @@ using NewtJson = Newtonsoft.Json;
 
 using Util = Introcs.Util.Library;
 using Misc = Introcs.Intro.Library;
-using Classic = Introcs.Practice.Classic;
+using Introcs.Practice;
 using Seqops = Introcs.Practice.Sequenceops;
 
 struct OptsRecord {
@@ -192,7 +192,7 @@ public static class App {
 		    
 		    var res = Util.MkString(lst);
 		    Console.Write("Reverse({0}): ", res);
-		    var lstTmp = Seqops.CopyOf<int>(lst);
+		    var lstTmp = Seqops.CopyOfLp<int>(lst);
 		    Seqops.ReverseLp<int>(lstTmp);
 		    res = Util.MkString(lstTmp);
 		    Console.WriteLine("{0}", res);
@@ -217,6 +217,43 @@ public static class App {
 		    res = Util.MkString(lst);
 		    Console.WriteLine("{0}", res);
         }
+        Console.WriteLine(new string('-', 40));
+        
+        int nPascal = 5;
+        int[][] arrPascal = Classic.PascalTriAdd(nPascal);
+        Console.WriteLine("PascalTri(n: {0}): ", nPascal);
+        Classic.PrintPascalTri(nPascal, arrPascal);
+        Console.WriteLine(new string('-', 40));
+        
+        int ndisks = 4, lenHanoi = (int)Math.Pow(2.0f, ndisks) - 1;
+        int[][] arrHanoi = ClassicPuzzles.Hanoi(1, 2, 3, ndisks);
+        Console.WriteLine("Hanoi(src: 1, dest: 2, spare: 3, ndisks: {0}): ",
+			ndisks);
+		for (int i = 0; lenHanoi > i; ++i)
+			Console.WriteLine("move #{0,-2}: move from {1} to {2}", i + 1,
+				arrHanoi[i][0], arrHanoi[i][1]);
+        Console.WriteLine(new string('-', 40));
+        
+        int numqueens = 8, queensNdx = rnd.Next(0, 50);
+        int[] arrNqueens = ClassicPuzzles.Nqueens(queensNdx, numqueens);
+        
+        Console.WriteLine("Nqueens(ndx: {0}, numqueens: {1}):",
+			queensNdx, numqueens);
+		Console.Write("{");
+		for (int r = 0; numqueens > r; ++r)
+			Console.Write("({0}, {1}), ", (char)('a' + r), arrNqueens[r]);
+		Console.WriteLine("}");
+		
+		for (int r = 0; numqueens > r; ++r, Console.WriteLine()) {
+			Console.Write("'{0}'", numqueens - 1 - r);
+			for (int c = 0; numqueens > c; ++c)
+				Console.Write("'{0}'",
+					(numqueens - 1 - r) == arrNqueens[c] ? 'Q' : '.');
+		}
+		Console.Write("' '");
+		for (int c = 0; numqueens > c; ++c)
+			Console.Write("'{0}'", (char)('a' + c));
+		Console.WriteLine("\n");
         Console.WriteLine(new string('-', 40));
         
         //pers = new Person("John", 32);
