@@ -8,52 +8,52 @@ using Introcs.Foreignc;
 
 [TestFixture]
 public class TcClassic : Base.ClsBase {
-    private float epsilon = 0.001f; //1.20e-7f;
-    
-    [TestFixtureSetUp]
-    public override void SetUpClass()
-    {
-        base.SetUpClass();
-        Console.Error.WriteLine("SetUpClass({0})", GetType());
-    }
-    
-    [TestFixtureTearDown]
-    public override void TearDownClass()
-    {
-        Console.Error.WriteLine("TearDownClass({0})", GetType());
-        base.TearDownClass();
-    }
-    
-    [SetUp]
-    public override void SetUp()
-    {
-        base.SetUp();
-        Console.Error.WriteLine("SetUp");
-    }
-    
-    [TearDown]
-    public override void TearDown()
-    {
-        Console.Error.WriteLine("TearDown");
-        base.TearDown();
-    }
-    
-    public override void Dispose()
-    {
-        Console.Error.WriteLine("Derived Dispose({0})", GetType());
-        base.Dispose();
-    }
-    
-	[Test] [Category("Tag1")]
+  private float epsilon = 0.001f; //1.20e-7f;
+
+  [OneTimeSetUp]
+  public override void SetUpClass()
+  {
+      base.SetUpClass();
+      Console.Error.WriteLine("SetUpClass({0})", GetType());
+  }
+
+  [OneTimeTearDown]
+  public override void TearDownClass()
+  {
+      Console.Error.WriteLine("TearDownClass({0})", GetType());
+      base.TearDownClass();
+  }
+
+  [SetUp]
+  public override void SetUp()
+  {
+      base.SetUp();
+      Console.Error.WriteLine("SetUp");
+  }
+
+  [TearDown]
+  public override void TearDown()
+  {
+      Console.Error.WriteLine("TearDown");
+      base.TearDown();
+  }
+
+  public override void Dispose()
+  {
+      Console.Error.WriteLine("Derived Dispose({0})", GetType());
+      base.Dispose();
+  }
+
+  [Test] [Category("Tag1")]
 	public void FactTest()
 	{
 		var funcs = new Func<long, long>[] {Classic.FactLp, Classic.FactI};
 		int n = 5;
-		
+
 		foreach (var f in funcs)
 	    	Assert.AreEqual(120, f(n), "FactTest");
 	}
-	
+
 	[Test] [Category("Tag1")]
 	public void ExptTest()
 	{

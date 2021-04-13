@@ -16,15 +16,15 @@ using Introcs.Practice;
 using Seqops = Introcs.Practice.Sequenceops;
 
 struct OptsRecord {
-    public string Name { get; set; }
-    public int Num { get; set; }
-    public bool IsExpt2 { get; set; }
-    
-    public override string ToString()
-    {
-		return String.Format("OptsRecord: [Name: {0}; Num: {1}; IsExpt2: {2}]",
-			Name, Num, IsExpt2);
-    }
+  public string Name { get; set; }
+  public int Num { get; set; }
+  public bool IsExpt2 { get; set; }
+
+  public override string ToString()
+  {
+	return String.Format("OptsRecord: [Name: {0}; Num: {1}; IsExpt2: {2}]",
+		Name, Num, IsExpt2);
+  }
 }
 
 static class Constants {
@@ -35,104 +35,90 @@ enum Kind : byte {FLOAT, DOUBLE, DECIMAL, INTSHORT, UINTLONG}
 
 [StructLayout(LayoutKind.Explicit)]
 struct UnionVal {
-    // integral types: [s]byte, [u]short, [u]int, [u]long, char
-    [FieldOffset(0)] public short sh;
-    [FieldOffset(0)] public ulong ul;
-    
-    // floating point & decimal types: float, double, decimal
-    [FieldOffset(0)] public float f;
-    [FieldOffset(0)] public double d;
-    [FieldOffset(0)] public decimal m;
-    
-    public override string ToString()
-    {
-		return string.Format(
-			"UnionVal: [sh: {0:D}; ul: {1:D}; f: {2:F}; d: {3:F}; m: {4:F}]", 
-			sh, ul, f, d, m);
-    }
+  // integral types: [s]byte, [u]short, [u]int, [u]long, char
+  [FieldOffset(0)] public short sh;
+  [FieldOffset(0)] public ulong ul;
+
+  // floating point & decimal types: float, double, decimal
+  [FieldOffset(0)] public float f;
+  [FieldOffset(0)] public double d;
+  [FieldOffset(0)] public decimal m;
+
+  public override string ToString()
+  {
+	return string.Format(
+		"UnionVal: [sh: {0:D}; ul: {1:D}; f: {2:F}; d: {3:F}; m: {4:F}]",
+		sh, ul, f, d, m);
+  }
 }
 
 struct UVar {
-    public byte kind { get; set; }
-    public UnionVal val { get; set; }
-    public override string ToString()
-    {
-    	return string.Format("UVar: [kind: {0}; val: {1}]", kind, val);
-    }
+  public byte kind { get; set; }
+  public UnionVal val { get; set; }
+  public override string ToString()
+  {
+    return string.Format("UVar: [kind: {0}; val: {1}]", kind, val);
+  }
 }
 
-/** @mainpage Description: 
+/** @mainpage Description:
  * <p>Brief comment.</p> */
 /// <summary>App class.</summary>
 public static class App {
-	//private static readonly log4net.ILog log = 
+	//private static readonly log4net.ILog log =
 	//	log4net.LogManager.GetLogger(
 	//	System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-	private static readonly log4net.ILog log = 
+	private static readonly log4net.ILog log =
 		log4net.LogManager.GetLogger("root");
-	
+
 	static Type fromType = typeof(App);
 	static Assembly assembly = Assembly.GetAssembly(fromType);
     static bool showHelp = false;
     static string progName = IO.Path.GetFileName(
 		Environment.GetCommandLineArgs()[0]);
-    
-    static string GetFromResources(string rsrcFileNm, string prefix = null)
-    {
-		string pathPfx = null != prefix ? prefix : 
-			fromType.Namespace + ".resources";
-		using (var strm = assembly.GetManifestResourceStream(rsrcFileNm) ??
-			assembly.GetManifestResourceStream(pathPfx + "." + rsrcFileNm))
-		{
-			using (var reader = new IO.StreamReader(strm))
-			{
-				return reader.ReadToEnd();
-			}
-		}
-	}
-    
+
     static void RunIntro(string name, int num, bool isExpt2,
 		string rsrcPath = "resources")
     {
         DateTime time1 = DateTime.Now;
         Stopwatch stopwatch1 = new Stopwatch();
         stopwatch1.Start();
-        
+
         // basic datatypes
         bool isDone = false;
         int numI = 0, arrLen = (int)ConstItems.ZERO, delayMsecs = 2500,
         	seedp = time1.Millisecond;
         float timeDiff = 0.0f;
         char ch = '\0';
-        
+
         // strings & arrays
         string greetStr, dateStr, greetPath = "greet.txt";
         char[] str1 = new char[64];
         int[] numArr = {9, 9, 0x9, 9}; // {bin, oct, hex, dec}
-        
+
         //composites
         UVar uVar1 = new UVar();
         //User user1 = new User() {Name = "World", Num = 0, TimeIn = time1};
         User user1 = new User("World", 0, time1);
         var tup1 = new Tuple<byte, short>((byte)Kind.INTSHORT, 100);
-        Person pers; 
-        
+        Person pers;
+
         Random rnd = new Random(seedp);
-        
+
         IO.TextWriter fOut = Console.Out;
         TimeZone tz1 = TimeZone.CurrentTimeZone;
-        string tzStr = tz1.IsDaylightSavingTime(time1) ? tz1.DaylightName 
+        string tzStr = tz1.IsDaylightSavingTime(time1) ? tz1.DaylightName
         	: tz1.StandardName;
-        
+
         arrLen = numArr.Length;
-        
+
         for (int i = 0; arrLen > i; ++i) // foreach (int elem in numArr)
             numI += numArr[i];            //     numI += elem;
-        Debug.Assert((numArr.Length * numArr[0]) == numI, 
+        Debug.Assert((numArr.Length * numArr[0]) == numI,
 			"arrLen * numArr[0] != numI");
-        
+
         ch = Misc.DelayChar(delayMsecs);
-        
+
         do {
             uVar1.kind = tup1.Item1;
             uVar1.val = new UnionVal(){sh = tup1.Item2};
@@ -147,21 +133,21 @@ public static class App {
             uVar1.kind = (byte)Kind.DECIMAL;
             uVar1.val = new UnionVal(){m = 1000.0m};
             str1[0] = '\0';
-            Debug.Assert(((byte)Kind.DECIMAL == uVar1.kind) && 
-                    (1000.0m == uVar1.val.m), 
+            Debug.Assert(((byte)Kind.DECIMAL == uVar1.kind) &&
+                    (1000.0m == uVar1.val.m),
                     "kind == Kind.DECIMAL && val == 1000.0m is false");
         } while (isDone);
-        
+
         user1.Name = name;
 	    user1.Num = 0 == num ? rnd.Next(0, 17) + 2 : num;
-	    
+
         SysTextRegex.Regex re = new SysTextRegex.Regex(@"(?i)^quit$");
         SysTextRegex.Match m = re.Match(name);
         Console.WriteLine("{0} match: {1} to {2}\n",
 			m.Success ? "Good" : "Does not", name, re);
-	    
+
 	    dateStr = user1.TimeIn.ToString("ddd MMM dd HH:mm:ss yyyy zzz");
-        
+
         //greetStr = Misc.Greeting(greetPath, user1.Name);
         try {
 			//greetStr = (new IO.StreamReader(rsrcPath + "/" + greetPath)).ReadToEnd().TrimEnd('\n', '\r') + user1.Name;
@@ -170,47 +156,47 @@ public static class App {
 			Console.Error.WriteLine("(exc: {0}) Bad env var RSRC_PATH: {1}\n",
 				exc0, rsrcPath);
 			try {
-				greetStr = GetFromResources(greetPath).TrimEnd('\n', '\r') + user1.Name;
+				greetStr = Util.GetFromResources(greetPath).TrimEnd('\n', '\r') + user1.Name;
 			} catch (Exception exc1) {
 				throw;
 				Environment.Exit(1);
 			}
 		}
         Console.WriteLine("{0} {1}\n{2}!", dateStr, tzStr, greetStr);
-        
+
         stopwatch1.Stop();
         timeDiff = stopwatch1.ElapsedMilliseconds;
-        Console.WriteLine("(program {0}) Took {1:F1} seconds.", progName, 
+        Console.WriteLine("(program {0}) Took {1:F1} seconds.", progName,
 			timeDiff * 1.0e-3);
-      	
+
       	int[] ints = {2, 1, 0, 4, 3};
       	var lst = new SysCollGen.List<int>(ints);
-      	
+
       	if (isExpt2) {
-		    fOut.WriteLine("Expt(2.0, {0}) = {1}", user1.Num, 
+		    fOut.WriteLine("Expt(2.0, {0}) = {1}", user1.Num,
 		        Classic.ExptLp(2.0f, user1.Num));
-		    
+
 		    var res = Util.MkString(lst);
 		    Console.Write("Reverse({0}): ", res);
 		    var lstTmp = Seqops.CopyOfLp<int>(lst);
 		    Seqops.ReverseLp<int>(lstTmp);
 		    res = Util.MkString(lstTmp);
 		    Console.WriteLine("{0}", res);
-		    
+
 		    res = Util.MkString(lst);
 		    Console.Write("{0}.Sort(): ", res);
 		    lst.Sort();
 		    res = Util.MkString(lst);
 		    Console.WriteLine("{0}", res);
         } else {
-		    fOut.WriteLine("Fact({0}) = {1}", user1.Num, 
+		    fOut.WriteLine("Fact({0}) = {1}", user1.Num,
 		        Classic.FactLp(user1.Num));
-		    
+
 		    int el = 3;
 		    var res = Util.MkString(lst);
 		    int idx = Seqops.IndexOfLp<int>(el, lst);
 		    Console.WriteLine("IndexOf({0}, {1}): {2}", el, res, idx);
-		    
+
 		    int newVal = 50;
 		    Console.Write("{0}.Add({1}): ", res, newVal);
 		    lst.Add(newVal);
@@ -218,13 +204,13 @@ public static class App {
 		    Console.WriteLine("{0}", res);
         }
         Console.WriteLine(new string('-', 40));
-        
+
         int nPascal = 5;
         int[][] arrPascal = Classic.PascalTriAdd(nPascal);
         Console.WriteLine("PascalTri(n: {0}): ", nPascal);
         Classic.PrintPascalTri(nPascal, arrPascal);
         Console.WriteLine(new string('-', 40));
-        
+
         int ndisks = 4, lenHanoi = (int)Math.Pow(2.0f, ndisks) - 1;
         int[][] arrHanoi = ClassicPuzzles.Hanoi(1, 2, 3, ndisks);
         Console.WriteLine("Hanoi(src: 1, dest: 2, spare: 3, ndisks: {0}): ",
@@ -233,17 +219,17 @@ public static class App {
 			Console.WriteLine("move #{0,-2}: move from {1} to {2}", i + 1,
 				arrHanoi[i][0], arrHanoi[i][1]);
         Console.WriteLine(new string('-', 40));
-        
+
         int numqueens = 8, queensNdx = rnd.Next(0, 50);
         int[] arrNqueens = ClassicPuzzles.Nqueens(queensNdx, numqueens);
-        
+
         Console.WriteLine("Nqueens(ndx: {0}, numqueens: {1}):",
 			queensNdx, numqueens);
 		Console.Write("{");
 		for (int r = 0; numqueens > r; ++r)
 			Console.Write("({0}, {1}), ", (char)('a' + r), arrNqueens[r]);
 		Console.WriteLine("}");
-		
+
 		for (int r = 0; numqueens > r; ++r, Console.WriteLine()) {
 			Console.Write("'{0}'", numqueens - 1 - r);
 			for (int c = 0; numqueens > c; ++c)
@@ -255,13 +241,13 @@ public static class App {
 			Console.Write("'{0}'", (char)('a' + c));
 		Console.WriteLine("\n");
         Console.WriteLine(new string('-', 40));
-        
+
         //pers = new Person("John", 32);
         pers = new Person {Name = "I.M. Computer", Age = 32};
-        
-        Debug.Assert(pers.GetType() == typeof(Person), 
+
+        Debug.Assert(pers.GetType() == typeof(Person),
 			"Debug Error: Type mismatch");
-        Debug.Assert(pers is Object, 
+        Debug.Assert(pers is Object,
 			"Trace Error: Type inheritance mismatch");
         Console.WriteLine("{0}", pers.ToString());
         Console.Write("pers.Age = {0}: ", 33);
@@ -269,7 +255,7 @@ public static class App {
         Console.WriteLine("{0}", pers.ToString());
         Console.WriteLine(new string('-', 40));
     }
-    
+
     static void ParseCmdopts(string[] args, Mono.Options.OptionSet options)
     {
         SysCollGen.List<string> extra = new SysCollGen.List<string>();
@@ -288,7 +274,7 @@ public static class App {
 		    Environment.Exit(1);
 	    }
     }
-    
+
     struct YamlConfig
     {
 		public string hostname { get; set; }
@@ -296,8 +282,8 @@ public static class App {
 		public SysCollGen.Dictionary<string, object> file1 { get; set; }
 		public SysCollGen.Dictionary<string, object> user1 { get; set; }
 	}
-    
-    /** DocComment: 
+
+    /** DocComment:
      * <p>Brief description.</p>
      * @param args - array of command-line arguments */
 	/// <summary>Main entry point.</summary>
@@ -320,12 +306,12 @@ public static class App {
         	new TextWriterTraceListener(traceOut)};
         foreach (var lstnr in lstnrs)
         	Debug.Listeners.Add(lstnr);	// /define:[TRACE|DEBUG]
-        
+
         ParseCmdopts(args, options);
-        
+
         string envRsrcPath = Environment.GetEnvironmentVariable("RSRC_PATH");
         string rsrcPath = null != envRsrcPath ? envRsrcPath : "resources";
-        
+
         string iniStr = String.Empty, jsonStr = String.Empty,
 			yamlStr = String.Empty;
         try {
@@ -337,22 +323,22 @@ public static class App {
 			Console.Error.WriteLine("(exc: {0}) Bad env var RSRC_PATH: {1}\n",
 				exc0, rsrcPath);
 			try {
-				iniStr = GetFromResources("prac.conf");
-				//jsonStr = GetFromResources("prac.json",
+				iniStr = Util.GetFromResources("prac.conf");
+				//jsonStr = Util.GetFromResources("prac.json",
 				//	fromType.Namespace + ".resources");
-				//yamlStr = GetFromResources("prac.yaml");
+				//yamlStr = Util.GetFromResources("prac.yaml");
 			} catch (Exception exc1) {
 				throw;
 				Environment.Exit(1);
 			}
 		}
-        
+
         //var cfgIni = new KeyFile.GKeyFile();
         //cfgIni.LoadFromData(iniStr);
         var cfgIni = new IniParser.StringIniParser().ParseString(iniStr);
-        
-        //var defn1 = new {hostname = String.Empty, domain = String.Empty, 
-		//	file1 = new {path = String.Empty, ext = String.Empty}, 
+
+        //var defn1 = new {hostname = String.Empty, domain = String.Empty,
+		//	file1 = new {path = String.Empty, ext = String.Empty},
 		//	user1 = new {name = String.Empty, age = 0}};
 		//var anonType = NewtJson.JsonConvert.DeserializeAnonymousType(
 		//	jsonStr, defn1);
@@ -361,27 +347,27 @@ public static class App {
         //var dictUserJson = NewtJson.JsonConvert.DeserializeObject<
 		//	SysCollGen.Dictionary<string, object>>(
 		//	String.Format("{0}", dictRootJson["user1"]));
-        
+
 		//var deserializer = new YamlDotNet.Serialization.Deserializer();
 		//var objRootYaml = deserializer.Deserialize<YamlConfig>(
 		//	new IO.StringReader(yamlStr));
-        
+
         Tuple<string, string, string>[] arrTups = {
-			//Tuple.Create(Util.IniCfgToStr(cfgIni), 
+			//Tuple.Create(Util.IniCfgToStr(cfgIni),
 			//	cfgIni.GetValue("default", "domain"),
 			//	cfgIni.GetValue("user1", "name")),
-			Tuple.Create(Util.IniCfgToStr(cfgIni), 
+			Tuple.Create(Util.IniCfgToStr(cfgIni),
 				cfgIni["default"]["domain"],
 				cfgIni["user1"]["name"]) //,
-			//Tuple.Create(anonType.ToString(), 
+			//Tuple.Create(anonType.ToString(),
 			//	String.Format("{0}", anonType.domain),
 			//	String.Format("{0}", anonType.user1.name)),
-			//Tuple.Create(Util.MkString(dictRootJson.ToArray(), beg: "{", 
+			//Tuple.Create(Util.MkString(dictRootJson.ToArray(), beg: "{",
 			//	stop: "}"),
-			//	String.Format("{0}", dictRootJson["domain"]), 
+			//	String.Format("{0}", dictRootJson["domain"]),
 			//	String.Format("{0}", dictUserJson["name"])),
 			//Tuple.Create(yamlStr,
-			//	String.Format("{0}", objRootYaml.domain), 
+			//	String.Format("{0}", objRootYaml.domain),
 			//	String.Format("{0}", objRootYaml.user1["name"]))
 		};
 		foreach (Tuple<string, string, string> tup in arrTups) {
@@ -389,9 +375,9 @@ public static class App {
 			Console.WriteLine("domain: {0}", tup.Item2);
 			Console.WriteLine("user1Name: {0}\n", tup.Item3);
 		}
-        
+
         RunIntro(opts.Name, opts.Num, opts.IsExpt2, rsrcPath);
-        
+
         //Trace.Fail("Trace example");
         Trace.Flush(); //Debug.Flush();
         traceOut.Close();

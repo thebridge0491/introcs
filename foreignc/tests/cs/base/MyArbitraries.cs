@@ -2,7 +2,8 @@ namespace Base {
 
 using System;
 using System.Collections.Generic;
-using FsCheck.Fluent;
+using System.Linq;
+using FsCheck;
 
 public class MyArbitraries {
 	public static FsCheck.Arbitrary<string> Strings()

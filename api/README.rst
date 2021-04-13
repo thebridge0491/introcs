@@ -47,7 +47,7 @@ Usage
 
 Author/Copyright
 ----------------
-Copyright (c) 2013 by thebridge0491 <thebridge0491-codelab@yahoo.com>
+Copyright (c) 2021 by thebridge0491 <thebridge0491-codelab@yahoo.com>
 
 License
 -------
