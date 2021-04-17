@@ -156,7 +156,7 @@ public static class App {
 			Console.Error.WriteLine("(exc: {0}) Bad env var RSRC_PATH: {1}\n",
 				exc0, rsrcPath);
 			try {
-				greetStr = Util.GetFromResources(greetPath).TrimEnd('\n', '\r') + user1.Name;
+				greetStr = Util.GetFromResources(greetPath, assembly).TrimEnd('\n', '\r') + user1.Name;
 			} catch (Exception exc1) {
 				throw;
 				Environment.Exit(1);
@@ -323,10 +323,10 @@ public static class App {
 			Console.Error.WriteLine("(exc: {0}) Bad env var RSRC_PATH: {1}\n",
 				exc0, rsrcPath);
 			try {
-				iniStr = Util.GetFromResources("prac.conf");
-				//jsonStr = Util.GetFromResources("prac.json",
+				iniStr = Util.GetFromResources("prac.conf", assembly);
+				//jsonStr = Util.GetFromResources("prac.json", assembly,
 				//	fromType.Namespace + ".resources");
-				//yamlStr = Util.GetFromResources("prac.yaml");
+				//yamlStr = Util.GetFromResources("prac.yaml", assembly);
 			} catch (Exception exc1) {
 				throw;
 				Environment.Exit(1);

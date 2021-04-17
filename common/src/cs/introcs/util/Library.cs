@@ -30,13 +30,14 @@ public static class Library {
 
   /// <summary>Get file contents from embedded resources.</summary>
   /// <param name="rsrcFileNm">A string.</param>
+  /// <param name="assy">An assembly or null.</param>
   /// <param name="prefix">A string or null.</param>
   /// <returns>The file contents.</returns>
-  public static string GetFromResources(string rsrcFileNm, string prefix = null)
+  public static string GetFromResources(string rsrcFileNm, Assembly assy = null, string prefix = null)
   {
-	  Assembly assembly = Assembly.GetExecutingAssembly();
+	  Assembly assembly = null != assy ? assy : Assembly.GetExecutingAssembly();
 		string pathPfx = null != prefix ? prefix :
-			assembly.GetType().Namespace + ".resources";
+			assembly.GetName().Name + ".resources";
 		using (var strm = assembly.GetManifestResourceStream(rsrcFileNm) ??
 			assembly.GetManifestResourceStream(pathPfx + "." + rsrcFileNm))
 		{
