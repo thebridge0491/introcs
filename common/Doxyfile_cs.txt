@@ -6,7 +6,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Introcs.Util"
 PROJECT_NUMBER         = 0.1.0
-PROJECT_BRIEF          = "Utilites sub-package for CSharp Intro examples project."
+PROJECT_BRIEF          = "Utilities sub-package for CSharp Intro examples project."
 PROJECT_LOGO           = 
 OUTPUT_DIRECTORY       = 
 CREATE_SUBDIRS         = NO

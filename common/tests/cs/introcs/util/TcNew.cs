@@ -87,12 +87,6 @@ public class TcNew : Base.ClsBase {
 		throw new Exception();
 	}
 
-	[Test] [Category("Tag2")] [Platform("Win98, WinME")]
-	public void SkippedWinMETest()
-    {
-        // ...
-    }
-
 	[Test] [Category("Tag1")] //[Test, Timeout(100)]
 	public void PassedTest()
 	{

@@ -4,16 +4,11 @@ using System;
 //using SysCollGen = System.Collections.Generic;
 using System.Collections.Generic;
 using NUnit.Framework;
+using NUnitLite;
 
 public class TsMain {
-    [Suite]
-    public static IEnumerable<Base.ClsBase> Suite {
-        get {
-            List<Base.ClsBase> suite = new List<Base.ClsBase>();
-            suite.Add(new NewTests.TcNew());
-            suite.Add(new NewTests.TpNew());
-            return suite;
-        }
+    public static int Main(string[] args) {
+        return new NUnitLite.AutoRun().Execute(args);
     }
 }
 

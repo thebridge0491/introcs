@@ -3,7 +3,7 @@ Introcs.Util
 .. .rst to .html: rst2html5 foo.rst > foo.html
 ..                pandoc -s -f rst -t html5 -o foo.html foo.rst
 
-Utilites sub-package for CSharp Intro examples project.
+Utilities sub-package for CSharp Intro examples project.
 
 Installation
 ------------
@@ -22,14 +22,27 @@ version control repository clone:
 build example with make:
 [sh] ./configure.sh [--prefix=$PREFIX] [--help]
 
-make build [test]
+make restore
+
+make all [testcompile check]
 
 make nugetadd [nugetinstall]
 
-build example with msbuild:
-[env LD_LIBRARY_PATH=$PREFIX/lib] msbuild /t:build [/t:test]
+build example with meson:
+[env PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig] meson setup -Dprefix=$PREFIX -Dhome=$HOME build
 
-msbuild /t:nugetpack,nugetadd [/t:nugetinstall]
+meson compile -C build restore
+
+meson compile -C build ; meson compile -C build check
+
+meson compile -C build nugetadd [nugetinstall]
+
+build example with msbuild:
+msbuild /t:restore [/t:restore tests/*.*proj]
+
+[LD_LIBRARY_PATH=$PREFIX/lib] msbuild /t:build [/t:build,test tests/*.*proj]
+
+msbuild /t:nugetadd,nugetinstall
 
 Usage
 -----

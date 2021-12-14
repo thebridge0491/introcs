@@ -114,7 +114,7 @@ public static class App {
 
         for (int i = 0; arrLen > i; ++i) // foreach (int elem in numArr)
             numI += numArr[i];            //     numI += elem;
-        Debug.Assert((numArr.Length * numArr[0]) == numI,
+        Trace.Assert((numArr.Length * numArr[0]) == numI,
 			"arrLen * numArr[0] != numI");
 
         ch = Misc.DelayChar(delayMsecs);
@@ -133,7 +133,7 @@ public static class App {
             uVar1.kind = (byte)Kind.DECIMAL;
             uVar1.val = new UnionVal(){m = 1000.0m};
             str1[0] = '\0';
-            Debug.Assert(((byte)Kind.DECIMAL == uVar1.kind) &&
+            Trace.Assert(((byte)Kind.DECIMAL == uVar1.kind) &&
                     (1000.0m == uVar1.val.m),
                     "kind == Kind.DECIMAL && val == 1000.0m is false");
         } while (isDone);
@@ -245,9 +245,9 @@ public static class App {
         //pers = new Person("John", 32);
         pers = new Person {Name = "I.M. Computer", Age = 32};
 
-        Debug.Assert(pers.GetType() == typeof(Person),
+        Trace.Assert(pers.GetType() == typeof(Person),
 			"Debug Error: Type mismatch");
-        Debug.Assert(pers is Object,
+        Trace.Assert(pers is Object,
 			"Trace Error: Type inheritance mismatch");
         Console.WriteLine("{0}", pers.ToString());
         Console.Write("pers.Age = {0}: ", 33);
@@ -302,10 +302,11 @@ public static class App {
         };
 
         IO.Stream traceOut = IO.File.Create("trace.log");
-        TraceListener[] lstnrs = {new ConsoleTraceListener(true),
+        TraceListener[] lstnrs = {
+        	new TextWriterTraceListener(System.Console.Out),
         	new TextWriterTraceListener(traceOut)};
         foreach (var lstnr in lstnrs)
-        	Debug.Listeners.Add(lstnr);	// /define:[TRACE|DEBUG]
+        	Trace.Listeners.Add(lstnr);	// /define:[TRACE|DEBUG]
 
         ParseCmdopts(args, options);
 
@@ -335,7 +336,7 @@ public static class App {
 
         //var cfgIni = new KeyFile.GKeyFile();
         //cfgIni.LoadFromData(iniStr);
-        var cfgIni = new IniParser.StringIniParser().ParseString(iniStr);
+        var cfgIni = new IniParser.Parser.IniDataParser().Parse(iniStr);
 
         //var defn1 = new {hostname = String.Empty, domain = String.Empty,
 		//	file1 = new {path = String.Empty, ext = String.Empty},
@@ -379,7 +380,7 @@ public static class App {
         RunIntro(opts.Name, opts.Num, opts.IsExpt2, rsrcPath);
 
         //Trace.Fail("Trace example");
-        Trace.Flush(); //Debug.Flush();
+        Trace.Flush();
         traceOut.Close();
         return 0;
     }

@@ -1,0 +1,13 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+#libdir=${exec_prefix}/lib
+#assemblies_dir=${libdir}/mono/Introcs.Practice
+libdir=${exec_prefix}/../nuget/packages
+assemblies_dir=${libdir}/Introcs.Practice/lib/net471
+Assemblies=${assemblies_dir}/Introcs.Practice.dll
+
+Name: Introcs.Practice
+Description: Practice sub-package for CSharp Intro examples project.
+URL: https://bitbucket.org/thebridge0491/introcs
+Version: 0.1.0
+Libs: -r:${assemblies_dir}/Introcs.Practice.dll
