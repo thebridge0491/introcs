@@ -1,0 +1,217 @@
+# Single package meson.build script.
+project('{{parentcap}}{{^parentcap}}Introcs{{/parentcap}}.{{projectcap}}{{^projectcap}}Util{{/projectcap}}', 'cs', version: '{{version}}{{^version}}0.1.0{{/version}}', license: '{{license}}{{^license}}Apache-2.0{{/license}}',
+  default_options: ['warning_level=3']) # c[pp] objc[pp] fortran java cs rust vala
+parent = '{{parent}}{{^parent}}introcs{{/parent}}'
+prefix = get_option('prefix')
+home = get_option('home')
+framework = get_option('framework')
+exelauncher = find_program('mono', required: false)
+if not exelauncher.found()
+  exelauncher = ''
+endif
+
+csc = meson.get_compiler('cs')
+message('C# compiler: @0@ (id: @1@ ; linker_id: @2@)'.format(csc, csc.get_id(),
+  csc.get_linker_id()))
+
+# ?? error CS0009 - (various assemblies) does not contain valid metadata
+# to force using csc vice mcs (BSD/Linux), copy csc as $HOME/bin/mcs, 
+# then, alter PATH environment variable
+## cp `which csc` $HOME/bin/mcs ; [setenv | export] PATH[=]$HOME/bin:$PATH
+
+# log4net netstandard
+reqs_src = 'fsharp.core ini-parser-netstandard{{#executable}} log4net system.diagnostics.textwritertracelistener mono.options newtonsoft.json yamldotnet{{/executable}}'.split()
+
+libs_depns = [] #[dependency('fsharp.core')]
+foreach e : reqs_src
+  libs_depns += [dependency(e)]
+endforeach
+
+## fsunit.xunit
+#reqs_tests = 'xunit.core fscheck fscheck.xunit'.split()
+# fsunit nunitlite
+reqs_tests = 'nunit fscheck fscheck.nunit'.split()
+
+libs_testsdepns = [] #[dependency('nunit')]
+foreach e : reqs_tests
+  libs_testsdepns += [dependency(e)]
+endforeach
+
+includes = [] #include_directories('../src')
+# [mcs /sdk:4.7.1 /pkg:dotnet | csc /langversion:7.1]
+commoncs_args = ['/sdk:4.7.1', '/pkg:dotnet', '/nologo', '/checked', '/warn:4',
+  f'/lib:.,@home@/nuget/packages']
+
+custom_target('restore', command: ['cd', '@BUILD_ROOT@', '&&',
+  exelauncher, f'@home@/bin/nuget.exe', 'install', '-framework', framework,
+  '-excludeversion', '-o', f'@home@/nuget/packages',
+  '@CURRENT_SOURCE_DIR@/packages.config', '&&', exelauncher,
+  f'@home@/bin/nuget.exe', 'list', '-source', f'@home@/.nuget/packages'],
+  output: ['restore'], input: [])
+
+assypaths = run_command(['pkg-config', f'--with-path=@prefix@/lib/pkgconfig', '--variable=Assemblies'] + reqs_src + reqs_tests)
+
+copyreqs = custom_target('copyreqs', command: ['cd', '@BUILD_ROOT@', '&&',
+  'cp', '-v', '@INPUT@', '.'], output: ['copyreqs'],
+  input: assypaths.stdout().split())
+
+{{#executable}}'''{{/executable}}
+libdyn = shared_library(meson.project_name(), ['src/cs/properties/AssemblyInfo.cs',
+  f'src/cs/@parent@/{{project}}{{^project}}util{{/project}}/Library.cs'],
+  include_directories: includes, dependencies: libs_depns,
+  cs_args: commoncs_args + ['/delaysign', '/keyfile:../codesign.snk.pub',
+    '/doc:@0@.xml'.format(meson.project_name())],
+  #link_args: [], link_depends: [],
+  version: meson.project_version(), install: false)
+{{#executable}}'''{{/executable}}
+{{#executable}}
+main = executable(meson.project_name(), ['src/cs/properties/AssemblyInfo.cs',
+  f'src/cs/@parent@/{{project}}{{^project}}util{{/project}}/Library.cs', f'src/cs/@parent@/{{project}}{{^project}}util{{/project}}/Person.cs',
+  f'src/cs/@parent@/{{project}}{{^project}}util{{/project}}/User.cs',
+  f'src/cs/@parent@/{{project}}{{^project}}util{{/project}}/App.cs'],
+  include_directories: includes, dependencies: libs_depns,
+  cs_args: commoncs_args + ['/delaysign', '/keyfile:../codesign.snk.pub',
+    '/main:@0@.App'.format(meson.project_name()),
+    '/doc:@0@.xml'.format(meson.project_name())],
+  #link_args: [], link_depends: [],
+  install: false)
+{{/executable}}
+
+if 'ON' == get_option('buildtest')
+  #testexe = executable(meson.project_name() + '.Tests', ['tests/cs/base/ClsBase.cs',
+  #  'tests/cs/base/MyArbitraries.cs', f'tests/cs/@parent@/{{project}}{{^project}}util{{/project}}/TcNew.cs',
+  #  f'tests/cs/@parent@/{{project}}{{^project}}util{{/project}}/TpNew.cs',
+  #  f'tests/cs/@parent@/{{project}}{{^project}}util{{/project}}/TsMain.cs'],
+  #  include_directories: includes, dependencies: libs_testsdepns,
+  #  cs_args: commoncs_args + ['/main:@0@.Tests.TsMain'.format(meson.project_name())],
+  #  link_with: [{{^executable}}libdyn{{/executable}}],
+  #  #link_args: [],
+  #  build_by_default: false)
+
+	# meson configure -Dopts='' <dir> ; meson compile check -C <dir>
+    # in file meson_options.txt:
+    #   option('opts', type: 'string', value: '', description: 'Cmd-line options')
+  ##test(f'test_@parent@_{{project}}{{^project}}util{{/project}}', testexe, args: get_option('opts').split())
+  #custom_target('check', command: ['cd', '@BUILD_ROOT@', ';', 'env',
+  #  'LD_LIBRARY_PATH=$${LD_LIBRARY_PATH}:.', 'MONO_PATH=$${MONO_PATH}:.',
+  #  'MONO_GAC_PREFIX=$${HOME}/.local', exelauncher,
+  #  testexe] + get_option('opts').split(), output: ['check'], input: [copyreqs])
+
+  testdll = shared_library(meson.project_name() + '.Tests', ['tests/cs/base/ClsBase.cs',
+    'tests/cs/base/MyArbitraries.cs', f'tests/cs/@parent@/{{project}}{{^project}}util{{/project}}/TcNew.cs',
+    f'tests/cs/@parent@/{{project}}{{^project}}util{{/project}}/TpNew.cs'],
+    include_directories: includes, dependencies: libs_testsdepns,
+    cs_args: commoncs_args, link_with: [{{^executable}}libdyn{{/executable}}],
+    #link_args: [],
+    build_by_default: true, install: false)
+  #testconsoleapp = run_command(['python', '-c', f'import glob ; print(glob.glob("@home@/.nuget/packages/xunit.runner.console/*/tools/net452/xunit.console.exe")[0])'], capture: true).stdout().strip()
+  #testappargs = '-nologo -appdomains denied -xml TestResult.xml'
+  testconsoleapp = run_command(['python', '-c', f'import glob ; print(glob.glob("@home@/.nuget/packages/nunit.consolerunner/*/tools/nunit3-console.exe")[0])'], capture: true).stdout().strip()
+  testappargs = '--noheader --domain=None --labels=OnOutputOnly --output=testout.txt "--result=TestResult.xml;format=nunit3"'.split()
+
+	# meson configure -Dopts='' <dir> ; meson compile check -C <dir>
+    # in file meson_options.txt:
+    #   option('opts', type: 'string', value: '', description: 'Cmd-line options')
+  custom_target('check', command: ['cd', '@BUILD_ROOT@', '&&', 'env',
+    'LD_LIBRARY_PATH=$${LD_LIBRARY_PATH}:.', 'MONO_PATH=$${MONO_PATH}:.',
+    'MONO_GAC_PREFIX=$${HOME}/.local', exelauncher,
+    testconsoleapp] + testappargs + [testdll] + get_option('opts').split(),
+    output: ['check'], input: [copyreqs])
+endif
+
+products = '{{^executable}}@0@/@1@.dll @0@/@1@.dll.mdb{{/executable}}{{^executable}} @0@/@1@.pdb{{/executable}} @0@/@1@.xml'.format(
+  meson.project_build_root(), meson.project_name()).split()
+message('products: @0@'.format(products))
+
+nugetpack = custom_target('nugetpack', command: ['cd', '@BUILD_ROOT@', '&&',
+  'rm', '-rf', 'nupkg', '&&', 'mkdir', '-p', 'nupkg/content',
+  f'nupkg/lib/@framework@', 'nupkg/build', '&&', 'cp', '-fR',
+  '@0@/@1@.nuspec'.format(meson.project_source_root(), meson.project_name()),
+  '@CURRENT_SOURCE_DIR@/LICENSE', 'nupkg/', '&&', 'cp', '-fR',
+  '@CURRENT_SOURCE_DIR@/LICENSE', '@CURRENT_SOURCE_DIR@/resources',
+  'nupkg/content/', '&&', 'cp'] + products + [f'nupkg/lib/@framework@', '&&',
+  {{^executable}}#{{/executable}}'cp', '-fR', '@0@.exe'.format(meson.project_name()), 'nupkg/build/', '&&',
+  #'cp', '-fR', '@CURRENT_SOURCE_DIR@/src', '@CURRENT_SOURCE_DIR@/tests', 'nupkg/', '&&',
+  'cd', '@BUILD_ROOT@/nupkg', '&&', exelauncher, f'@home@/bin/nuget.exe', 'pack',
+  '-excludeemptydirectories', '-packagesdirectory', f'@home@/.nuget/packages',
+  '-outputdirectory', meson.project_build_root(),
+  '@0@.nuspec'.format(meson.project_name())], output: ['nugetpack'],
+  input: [])
+
+nugetadd = custom_target('nugetadd', command: ['cd', '@BUILD_ROOT@', '&&',
+  exelauncher, f'@home@/bin/nuget.exe', 'add', '-source',
+  f'@home@/.nuget/packages', '@CURRENT_SOURCE_DIR@/bin/@0@.@1@.nupkg'.format(
+  meson.project_name(), meson.project_version())],
+  output: ['nugetadd'], input: [nugetpack])
+
+custom_target('nugetinstall', command: ['cd', '@BUILD_ROOT@', '&&',
+  exelauncher, f'@home@/bin/nuget.exe', 'install', '-source',
+  f'@home@/.nuget/packages', '-framework', framework, '-excludeversion', '-o',
+  f'@home@/nuget/packages', meson.project_name(), '&&', exelauncher,
+  f'@home@/bin/nuget.exe', 'search', '-source', f'@home@/.nuget/packages',
+  meson.project_name(), '&&', 'cp'] + '@CURRENT_SOURCE_DIR@/src/@0@.pc.in @home@/.local/lib/pkgconfig/@0@.pc'.format(meson.project_name().to_lower()).split() + ['sh', '-xc',
+  f'pkg-config --with-path=@prefix@/lib/pkgconfig --list-all | grep @0@'.format(
+  meson.project_name().to_lower())],
+  output: ['nugetinstall'], input: [])
+
+tar_opts = ['--format=posix', '--dereference', '--exclude-from',
+	'@0@/exclude.lst'.format(meson.current_source_dir())]
+zip_opts = ['-9', '--exclude', '@@0@/exclude.lst'.format(
+	meson.current_source_dir()), '-r']
+distdir = meson.project_name() + '-' + meson.project_version()
+
+#pre_dist = custom_target(distdir, command: ['sh', '-xc',
+#	'rm -fr @BUILD_ROOT@/@OUTPUT@ ; mkdir -p @BUILD_ROOT@/@OUTPUT@ ; zip @0@ - . | unzip -od @BUILD_ROOT@/@OUTPUT@ -'.format(' '.join(zip_opts))],
+#	output: [distdir], input: [])
+pre_dist = custom_target(distdir, command: ['sh', '-xc',
+	'rm -fr @BUILD_ROOT@/@OUTPUT@ ; mkdir -p @BUILD_ROOT@/@OUTPUT@ ; tar @0@ -C .. -cf - . | tar -xpf - -C @BUILD_ROOT@/@OUTPUT@'.format(' '.join(tar_opts))],
+	output: [distdir], input: [])
+
+# meson configure -Dfmts='tar.gz,zip' <dir> ; meson compile -C <dir> package
+# in file meson_options.txt:
+#   option('fmts', type: 'array', value: ['tar.gz', 'zip'], description: 'Archive format -- decides compression algorithm')
+fmt_extns = ''
+foreach e : get_option('fmts')
+	fmt_extns = fmt_extns + e + ' '
+endforeach
+custom_target('package', command: ['sh', '-xc'] +
+	['''FMTS=${FMTS:-@0@}
+	for fmt in `echo $FMTS | tr ',' ' '` ; do
+	  case $fmt in
+	    7z) echo "### @1@.7z ###" ;
+	      rm -f @1@.7z ;
+	      7za a -t7z -mx=9 @1@.7z @1@ ;;
+	    zip) echo "### @1@.zip ###" ;
+	      rm -f @1@.zip ;
+	      zip -9 -q -r @1@.zip @1@ ;;
+	    *) echo "### @1@.$fmt ###" ;
+	      rm -f @1@.$fmt ;
+	      tar --posix -L -caf @1@.$fmt @1@ ;;
+	  esac
+	done'''.format(fmt_extns, distdir)],
+	output: ['package'], input: [pre_dist])
+
+custom_target('monodoc', command: ['cd', '@BUILD_ROOT@', '&&',
+  'mdoc', 'update', '-o', 'doc_xmls', '-i', '@0@.xml'.format(
+  meson.project_name()), {{^executable}}libdyn{{/executable}}{{#executable}}main{{/executable}}, '&&', 'mdoc', 'export-html',
+  '--force-update', '-o', 'docs', 'doc_xmls'], output: ['monodoc'],
+  input: [])
+
+gendarmeapp = run_command(['python', '-c', f'import glob ; print(glob.glob("@home@/.nuget/packages/mono.gendarme/*/tools/gendarme.exe")[0])'], capture: true).stdout().strip()
+
+custom_target('lint', command: ['cd', '@BUILD_ROOT@', '&&',
+  exelauncher, gendarmeapp, '--html', 'lint_rpt.html', {{^executable}}libdyn{{/executable}}{{#executable}}main{{/executable}}], output: ['lint'],
+  input: [])
+
+custom_target('monocover', command: ['cd', '@BUILD_ROOT@', '&&',
+  'env', 'LD_LIBRARY_PATH=$${LD_LIBRARY_PATH}:.', 'MONO_PATH=$${MONO_PATH}:.',
+  'MONO_GAC_PREFIX=$${HOME}/.local', exelauncher, '--debug', '-O=-aot',
+  '--profile=coverage:output=cov.xml,covfilter-file=@CURRENT_SOURCE_DIR@/resources/covfilter.txt',
+  '--profile=log:output=cov.dat,covfilter-file=@CURRENT_SOURCE_DIR@/resources/covfilter.txt',
+  testconsoleapp] + testappargs +
+  ['@0@.Tests.dll'.format(meson.project_name())] + get_option('opts').split(),
+  output: ['monocover'], input: [])
+
+custom_target('report', command: ['cd', '@BUILD_ROOT@', '&&',
+  'mprof-report', '--out=cov.txt', 'cov.dat'],
+  output: ['report'], input: [])

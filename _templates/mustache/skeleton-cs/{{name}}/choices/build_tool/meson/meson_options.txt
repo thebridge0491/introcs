@@ -1,0 +1,5 @@
+option('buildtest', type: 'string', value: 'ON', description: 'Enable/disable compile test(s)')
+option('opts', type: 'string', value: '', description: 'Cmd-line options')
+option('fmts', type: 'array', value: ['tar.gz', 'zip'], description: 'Archive format -- decides compression algorithm')
+option('home', type: 'string', value: '/home/packer', description: 'User home dir')
+option('framework', type: 'string', value: 'net471', description: 'Target Framework')

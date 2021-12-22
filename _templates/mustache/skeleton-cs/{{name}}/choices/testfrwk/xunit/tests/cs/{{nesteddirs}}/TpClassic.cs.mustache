@@ -3,50 +3,59 @@ namespace {{parentcap}}{{^parentcap}}Introcs{{/parentcap}}{{joiner}}{{^joiner}}.
 using System;
 using System.Linq;
 using Xunit;
-using FsCheck.Fluent;
 using FsCheck;
 using FsCheck.Xunit;
 
 using {{parentcap}}{{^parentcap}}Introcs{{/parentcap}}{{joiner}}{{^joiner}}.{{/joiner}}{{projectcap}}{{^projectcap}}Util{{/projectcap}};
 
 public class TpClassic : Base.ClsBase {
-    private double epsilon = 0.001; //1.20e-7;
+  private double epsilon = 0.001; //1.20e-7;
+  
+  public bool InEpsilon(double a, double b, double tolerance = 0.001)
+  {
+    double delta = Math.Abs(tolerance);
+    //return (a - delta) <= b && (a + delta) >= b;
+    return !((a + delta) < b) && !((b + delta) < a);
+  }
+  /*
+  public override void Dispose()
+  {
+    output.WriteLine("TearDown");
+    base.TearDown();
+    output.Write("Dispose({0}) / ", GetType());
+    base.Dispose();
+  }*/
     
-    public bool InEpsilon(double a, double b, double tolerance = 0.001)
-    {
-		double delta = Math.Abs(tolerance);
-		//return (a - delta) <= b && (a + delta) >= b;
-		return !((a + delta) < b) && !((b + delta) < a);
-	}
-    /*
-    public override void Dispose()
-    {
-		output.WriteLine("TearDown");
-        base.TearDown();
-        output.Write("Dispose({0}) / ", GetType());
-        base.Dispose();
-    }*/
+  [Property] [Trait("Category", "Tag3")]
+  public bool FactProp(uint x)
+  {
+    var funcs = new Func<long, long>[] {Classic.FactLp, Classic.FactI};
+    int n = (int)x % 19 + 1;
+    var ans = Enumerable.Range(1, n).Select(e => 
+      (long)e).Aggregate((acc, e) => acc * e);
     
-	[Property] [Trait("Category", "Tag3")]
-	public bool FactProp(uint x)
-	{
-		var funcs = new Func<long, long>[] {Classic.FactLp, Classic.FactI};
-		int n = (int)x % 19 + 1;
-		var ans = Enumerable.Range(1, n).Select(e => 
-			(long)e).Aggregate((acc, e) => acc * e);
-		return funcs.Aggregate(true, (acc, f) => acc && ans == f(n));
-	}
-	
-	[Property] [Trait("Category", "Tag3")]
-	public bool ExptProp(uint x, uint y)
-	{
-		var funcs = new Func<float, float, float>[] {Classic.ExptLp, 
-			Classic.ExptI};
-		float b = (float)(x % 19 + 1); float n = (float)(y % 10 + 1);
-		var ans = Math.Pow(b, n);
-		return funcs.Aggregate(true, (acc, f) => acc && InEpsilon(ans, 
-			f(b, n), epsilon * ans));
-	}
+    /*bool res = true;
+    foreach (var f in funcs)
+      res = res && ans == f(n);
+    return res;*/
+    return funcs.Aggregate(true, (acc, f) => acc && ans == f(n));
+  }
+  
+  [Property] [Trait("Category", "Tag3")]
+  public bool ExptProp(uint x, uint y)
+  {
+    var funcs = new Func<float, float, float>[] {Classic.ExptLp, 
+      Classic.ExptI};
+    float b = (float)(x % 19 + 1); float n = (float)(y % 10 + 1);
+    var ans = Math.Pow(b, n);
+    
+    /*bool res = true;
+    foreach (var f in funcs)
+      res = res && InEpsilon(ans, f(b, n), epsilon * ans);
+    return res;*/
+    return funcs.Aggregate(true, (acc, f) => acc && InEpsilon(ans, 
+      f(b, n), epsilon * ans));
+  }
 }
 
 }

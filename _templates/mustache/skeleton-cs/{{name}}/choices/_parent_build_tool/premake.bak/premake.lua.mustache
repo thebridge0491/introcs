@@ -1,0 +1,141 @@
+#!/usr/bin/env lua
+
+-- Multi-package project premake.lua script.
+if path.getbasename(_WORKING_DIR) ~= "build" then
+	printf("Error: cd build ; premake --file=../premake.lua gmake")
+	os.exit(EXIT_FAILURE)
+end
+
+newoption { trigger = "prefix", value = "/usr/local",
+	description = "Installation prefix"}
+newoption { trigger = "buildtest", value = "ON", 
+	allowed = { { "ON", "Enable build test" }, { "OFF", "Disable build test" } },
+	description = "Build test(s)"}
+
+newoption { trigger = "fmts", value = "tar.gz,zip",
+	description = "Select archive format(s)"}
+newoption { trigger = "framework", value = "net471",
+	description = "Target framework"}
+newoption { trigger = "subdirs", value = "common,app",
+	description = "Subdirectories to target"}
+
+local parent = "{{parent}}{{^parent}}introcs{{/parent}}"
+local version = "{{version}}{{^version}}0.1.0{{/version}}"
+local subdirs = string.explode(_OPTIONS["subdirs"] or "common,app", ",")
+
+newaction { trigger = "help", description = "Help - displays targets",
+	execute = function ()
+		for _, e in ipairs(subdirs) do
+			assert(os.isdir(e), "Non-existent directory: " .. e)
+			printf("### subdir: %s ###", e)
+			os.execute(string.format("cd %s ; gmake help", e))
+		end
+	end
+}
+
+newaction { trigger = "all", description = "Compile the software",
+	execute = function ()
+		for _, e in ipairs(subdirs) do
+			assert(os.isdir(e), "Non-existent directory: " .. e)
+			printf("### subdir: %s ###", e)
+			os.execute(string.format("cd %s ; gmake", e))
+		end
+	end
+}
+
+if "ON" == (_OPTIONS["buildtest"] or "ON") then
+	newaction { trigger = "test", description = "Run subdir(s) tests",
+		execute = function ()
+			for _, e in ipairs(subdirs) do
+				assert(os.isdir(e), "Non-existent directory: " .. e)
+				printf("### subdir: %s ###", e)
+				os.execute(string.format("cd %s ; gmake test", e))
+			end
+		end
+	}
+end
+
+newaction { trigger = "nugetadd", description = "Nuget add subdir(s) artifacts",
+	execute = function ()
+		for _, e in ipairs(subdirs) do
+			assert(os.isdir(e), "Non-existent directory: " .. e)
+			printf("### subdir: %s ###", e)
+			os.execute(string.format("cd %s ; gmake nugetadd", e))
+		end
+	end
+}
+
+newaction { trigger = "nugetinstall", description = "Nuget install subdir(s) artifacts",
+	execute = function ()
+		for _, e in ipairs(subdirs) do
+			assert(os.isdir(e), "Non-existent directory: " .. e)
+			printf("### subdir: %s ###", e)
+			os.execute(string.format("cd %s ; gmake nugetinstall", e))
+		end
+	end
+}
+
+newaction { trigger = "package", description = "Create project source archive(s)",
+	execute = function ()
+		distdir = string.format("%s-%s", parent, version)
+		os.copyfile(path.getdirectory(_WORKING_DIR) .. "/exclude.lst", ".")
+		os.mkdir(distdir)
+		
+		--[=[os.execute(string.format("cd %s ; zip -9 -q --exclude @%s/exclude.lst -r --exclude '*/build/*' - ." ..
+			" | unzip -od build/%s -", path.getdirectory(_WORKING_DIR),
+			path.getdirectory(_WORKING_DIR), distdir))]=]
+		os.execute(string.format("tar --format=posix --dereference " ..
+			"--exclude-from=%s/exclude.lst -C %s -cf - . | tar -xpf - -C %s",
+			path.getdirectory(_WORKING_DIR), 
+			path.getdirectory(_WORKING_DIR), distdir))
+		
+		for _, fmt in ipairs(string.explode(_OPTIONS["fmts"] or "tar.gz,zip", ",")) do
+			if fmt == "7z" then
+				os.execute(string.format("rm -f %s ; 7za a -t7z -mx=9 %s %s",
+					distdir .. ".7z", distdir .. ".7z", distdir))
+			elseif fmt == "zip" then
+				os.execute(string.format("rm -f %s ; zip -9 -q -r %s %s",
+					distdir .. ".zip", distdir .. ".zip", distdir))
+			else
+				os.execute(string.format("rm -f %s ; tar --posix -L -caf %s %s",
+					distdir .. "." .. fmt, distdir .. "." .. fmt, distdir))
+			end
+		end
+	end
+}
+
+newaction { trigger = "monodoc", description = "Generate subdir(s) API documentation",
+	execute = function ()
+		for _, e in ipairs(subdirs) do
+			assert(os.isdir(e), "Non-existent directory: " .. e)
+			printf("### subdir: %s ###", e)
+			os.execute(string.format("cd %s ; gmake monodoc", e))
+		end
+	end
+}
+
+newaction { trigger = "lint", description = "Lint check subdir(s) source code",
+	execute = function ()
+		local lintopts = "--enable=all --report-progress --quiet --force " ..
+			"--std=c99 --std=posix -Iinclude"
+		for _, e in ipairs(subdirs) do
+			assert(os.isdir(e), "Non-existent directory: " .. e)
+			printf("### subdir: %s ###", e)
+			os.execute(string.format("cd %s ; gmake lint", e))
+		end
+	end
+}
+
+newaction { trigger = "monocover", description = "Report subdir(s) code coverage",
+	execute = function ()
+		for _, e in ipairs(subdirs) do
+			assert(os.isdir(e), "Non-existent directory: " .. e)
+			printf("### subdir: %s ###", e)
+			os.execute(string.format("cd %s ; gmake monocover", e))
+		end
+	end
+}
+
+for _, subdir in ipairs(subdirs) do
+	include(subdir)
+end

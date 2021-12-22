@@ -7,54 +7,54 @@ using Xunit;
 using {{parentcap}}{{^parentcap}}Introcs{{/parentcap}}{{joiner}}{{^joiner}}.{{/joiner}}{{projectcap}}{{^projectcap}}Util{{/projectcap}};
 
 public class TcClassic : Base.ClsBase {
-    private float epsilon = 0.001f; //1.20e-7f;
+  private float epsilon = 0.001f; //1.20e-7f;
+  
+  public bool InEpsilon(double a, double b, double tolerance = 0.001)
+  {
+    double delta = Math.Abs(tolerance);
+    //return (a - delta) <= b && (a + delta) >= b;
+    return !((a + delta) < b) && !((b + delta) < a);
+  }
+  
+  public TcClassic()
+  {
+    base.SetUp();
+    output.WriteLine("SetUp");
+  }
+  
+  public override void Dispose()
+  {
+    output.WriteLine("TearDown");
+    base.TearDown();
+    output.Write("Dispose({0}) / ", GetType());
+    base.Dispose();
+  }
     
-    public bool InEpsilon(double a, double b, double tolerance = 0.001)
-    {
-		double delta = Math.Abs(tolerance);
-		//return (a - delta) <= b && (a + delta) >= b;
-		return !((a + delta) < b) && !((b + delta) < a);
-	}
-    
-    public TcClassic()
-    {
-		base.SetUp();
-        output.WriteLine("SetUp");
-	}
-	
-    public override void Dispose()
-    {
-		output.WriteLine("TearDown");
-        base.TearDown();
-        output.Write("Dispose({0}) / ", GetType());
-        base.Dispose();
+  [Fact]
+  public void FactTest()
+  {
+    var funcs = new Func<long, long>[] {Classic.FactLp, Classic.FactI};
+    long n = 5L;
+      
+    foreach (var f in funcs)
+      Assert.Equal(120L, f(n));
+  }
+  [Fact]
+  public void ExptTest()
+  {
+    var funcs = new Func<float, float, float>[] {Classic.ExptLp,
+      Classic.ExptI};
+    float[] param1 = {2.0f, 11.0f, 20.0f}, param2 = {3.0f, 6.0f, 10.0f};
+    var prodParams =    // cartesian product (System.Linq)
+      from b in param1
+      from n in param2
+      select new {b, n};
+    foreach (var f in funcs)
+    foreach (var tup in prodParams) {
+      float ans = (float)Math.Pow(tup.b, tup.n);
+      Assert.True(InEpsilon(ans, f(tup.b, tup.n), ans * epsilon));
     }
-    
-	[Fact]
-	public void FactTest()
-	{
-	    var funcs = new Func<long, long>[] {Classic.FactLp, Classic.FactI};
-	    long n = 5L;
-	    
-		foreach (var f in funcs)
-			Assert.Equal(120L, f(n));
-	}
-	[Fact]
-	public void ExptTest()
-	{
-	    var funcs = new Func<float, float, float>[] {Classic.ExptLp,
-			Classic.ExptI};
-		float[] param1 = {2.0f, 11.0f, 20.0f}, param2 = {3.0f, 6.0f, 10.0f};
-	    var prodParams =		// cartesian product (System.Linq)
-	    	from b in param1
-	    	from n in param2
-	    	select new {b, n};
-    	foreach (var f in funcs)
-			foreach (var tup in prodParams) {
-				float ans = (float)Math.Pow(tup.b, tup.n);
-				Assert.True(InEpsilon(ans, f(tup.b, tup.n), ans * epsilon));
-			}
-	}
+  }
 }
 
 }

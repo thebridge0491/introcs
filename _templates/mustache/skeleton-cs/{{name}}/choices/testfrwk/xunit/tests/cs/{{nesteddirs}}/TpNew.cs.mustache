@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Xunit;
-using FsCheck.Fluent;
 using FsCheck.Xunit;
 
 using MyArbitraries = Base.MyArbitraries;
@@ -12,138 +11,145 @@ using MyArbitraries = Base.MyArbitraries;
 using {{parentcap}}{{^parentcap}}Introcs{{/parentcap}}{{joiner}}{{^joiner}}.{{/joiner}}{{projectcap}}{{^projectcap}}Util{{/projectcap}};
 
 public class TpNew : Base.ClsBase {
-    private double epsilon = 0.001; //1.20e-7;
+  private double epsilon = 0.001; //1.20e-7;
+  
+  public bool InEpsilon(double a, double b, double tolerance = 0.001)
+  {
+    double delta = Math.Abs(tolerance);
+    //return (a - delta) <= b && (a + delta) >= b;
+    return !((a + delta) < b) && !((b + delta) < a);
+  }
+  
+  /*public override void Dispose()
+  {
+    output.WriteLine("TearDown");
+    base.TearDown();
+    output.Write("Dispose({0}) / ", GetType());
+    base.Dispose();
+  }*/
     
-    public bool InEpsilon(double a, double b, double tolerance = 0.001)
-    {
-		double delta = Math.Abs(tolerance);
-		//return (a - delta) <= b && (a + delta) >= b;
-		return !((a + delta) < b) && !((b + delta) < a);
-	}
-    
-    /*public override void Dispose()
-    {
-		output.WriteLine("TearDown");
-        base.TearDown();
-        output.Write("Dispose({0}) / ", GetType());
-        base.Dispose();
-    }*/
-    
-    // xunit spec style - call quickcheck
-    [Fact] [Trait("Category", "Tag3")]
-	public void CommutAddCheck()
-	{
-		Spec.ForAny<int, int>((a, b) => (a + b) == (b + a)).QuickCheckThrowOnFailure();
-	}
-	
-	[Fact] [Trait("Category", "Tag3")]
-	public void AssocAddCheck()
-	{
-		Spec.ForAny<int, int, int>((x, y, z) => {
-			double a = (double)x; double b = (double)y; double c = (double)z;
-			return InEpsilon((a + b) + c, a + (b + c),
-				epsilon * ((a + b) + c));
-			}).QuickCheckThrowOnFailure();
-	}
-	
-	[Fact] [Trait("Category", "Tag3")]
-	public void RevRevCheck()
-	{
-		Spec.ForAny<int[]>(xs => xs.Reverse().Reverse().SequenceEqual(xs)).QuickCheckThrowOnFailure();
-		//Spec.For(Gen.arrayOf(Gen.choose(-10, 10)), xs => xs.Reverse().Reverse().SequenceEqual(xs)).When(xs => xs.Length > 0).QuickCheckThrowOnFailure();
-	}
-	
-	[Fact]
-	public void IdRevCheck()
-	{
-		Spec.ForAny<double[]>(xs => xs.Reverse().SequenceEqual(xs)).QuickCheckThrowOnFailure();
-	}
-	
-	[Fact] [Trait("Category", "Tag3")]
-	public void SortRevCheck()
-	{
-		Spec.ForAny<double[]>(xs => {
-			double[] ys = xs.Clone() as double[];
-			Array.Sort(ys);
-			Array.Reverse(xs);
-			Array.Sort(xs);
-			return xs.SequenceEqual(ys);
-			}).QuickCheckThrowOnFailure();
-	}
-	
-	[Fact] [Trait("Category", "Tag3")]
-	public void MinSortHeadCheckA()
-	{
-		Spec.ForAny<FsCheck.NonEmptyArray<FsCheck.NormalFloat>>(xs => {
-			double[] ys = xs.Get.Select(e => e.Get).ToArray();
-			Array.Sort(ys);
-			return InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
-			}).QuickCheckThrowOnFailure();
-	}
-	
-	[Fact] [Trait("Category", "Tag3")]
-	public void MinSortHeadCheckB()
-	{
-		DefaultArbitraries.Add<MyArbitraries>();
-		Spec.ForAny<IEnumerable<double>>(xs => {
-			double[] ys = xs.Select(e => e).ToArray();
-			Array.Sort(ys);
-			return InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
-			}).QuickCheckThrowOnFailure();
-	}
-	
-	// fscheck property style
-	[Property(MaxTest = 20, Verbose = true)] [Trait("Category", "Tag3")]
-	public bool CommutAddProp(int a, int b)
-	{
-	    return (a + b) == (b + a);
-	}
-	
-	[Property] [Trait("Category", "Tag3")]
-	public bool AssocAddProp(int x, int y, int z)
-	{
-		double a = (double)x; double b = (double)y; double c = (double)z;
-		return InEpsilon((a + b) + c, a + (b + c), epsilon * ((a + b) + c));
-	}
-	
-	[Property] [Trait("Category", "Tag3")]
-	public bool RevRevProp(int[] xs)
-	{
-		return xs.Reverse().Reverse().SequenceEqual(xs);
-	}
-	
-	[Property]
-	public bool IdRevProp(double[] xs)
-	{
-		return xs.Reverse().SequenceEqual(xs);
-	}
-	
-	[Property] [Trait("Category", "Tag3")]
-	public bool SortRevProp(double[] xs)
-	{
-		double[] ys = xs.Clone() as double[];
-		Array.Sort(ys);
-		Array.Reverse(xs);
-		Array.Sort(xs);
-		return xs.SequenceEqual(ys);
-	}
-	
-	[Property] [Trait("Category", "Tag3")]
-	public bool MinSortHeadPropA(FsCheck.NonEmptyArray<FsCheck.NormalFloat> xs)
-	{
-		double[] ys = xs.Get.Select(e => e.Get).ToArray();
-		Array.Sort(ys);
-		return InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
-	}
-	
-	[Property(Arbitrary = new[] { typeof(MyArbitraries) })]
-		[Trait("Category", "Tag3")]
-	public bool MinSortHeadPropB(IEnumerable<double> xs)
-	{
-		double[] ys = xs.Select(e => e).ToArray();
-		Array.Sort(ys);
-		return InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
-	}
+  // xunit spec style - call quickcheck
+  [Fact] [Trait("Category", "Tag3")]
+  public void CommutAddCheck()
+  {
+    Func<int, int, bool> func = (a, b) => (a + b) == (b + a);
+    Prop.ForAll<int, int>(func).QuickCheckThrowOnFailure();
+  }
+  
+  [Fact] [Trait("Category", "Tag3")]
+  public void AssocAddCheck()
+  {
+    Func<int, int, int, bool> func = (x, y, z) => {
+      double a = (double)x; double b = (double)y; double c = (double)z;
+      return InEpsilon((a + b) + c, a + (b + c),
+          epsilon * ((a + b) + c));
+      };
+    Prop.ForAll<int, int, int>(func).QuickCheckThrowOnFailure();
+  }
+  
+  [Fact] [Trait("Category", "Tag3")]
+  public void RevRevCheck()
+  {
+    Func<int[], bool> func = xs => xs.Reverse().Reverse().SequenceEqual(xs);
+    Prop.ForAll<int[]>(func).QuickCheckThrowOnFailure();
+  }
+  
+  [Fact]
+  public void IdRevCheck()
+  {
+    Func<double[], bool> func = xs => xs.Reverse().SequenceEqual(xs);
+    Prop.ForAll<double[]>(func).QuickCheckThrowOnFailure();
+  }
+  
+  [Fact] [Trait("Category", "Tag3")]
+  public void SortRevCheck()
+  {
+    Func<double[], bool> func = xs => {
+      double[] ys = xs.Clone() as double[];
+      Array.Sort(ys);
+      Array.Reverse(xs);
+      Array.Sort(xs);
+      return xs.SequenceEqual(ys);
+      };
+    Prop.ForAll<double[]>(func).QuickCheckThrowOnFailure();
+  }
+  
+  [Fact] [Trait("Category", "Tag3")]
+  public void MinSortHeadCheckA()
+  {
+    Func<FsCheck.NonEmptyArray<FsCheck.NormalFloat>, bool> func = xs => {
+      double[] ys = xs.Get.Select(e => e.Get).ToArray();
+      Array.Sort(ys);
+      return InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
+      };
+    Prop.ForAll<FsCheck.NonEmptyArray<FsCheck.NormalFloat>>(
+      func).QuickCheckThrowOnFailure();
+  }
+  
+  [Fact] [Trait("Category", "Tag3")]
+  public void MinSortHeadCheckB()
+  {
+    Func<IEnumerable<double>, bool> func = xs => {
+      double[] ys = xs.Select(e => e).ToArray();
+      Array.Sort(ys);
+      return InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
+      };
+    Arb.Register<MyArbitraries>();
+    Prop.ForAll<IEnumerable<double>>(func).QuickCheckThrowOnFailure();
+  }
+  
+  // fscheck property style
+  [Property(MaxTest = 20, Verbose = true)] [Trait("Category", "Tag3")]
+  public bool CommutAddProp(int a, int b)
+  {
+      return (a + b) == (b + a);
+  }
+  
+  [Property] [Trait("Category", "Tag3")]
+  public bool AssocAddProp(int x, int y, int z)
+  {
+    double a = (double)x; double b = (double)y; double c = (double)z;
+    return InEpsilon((a + b) + c, a + (b + c), epsilon * ((a + b) + c));
+  }
+  
+  [Property] [Trait("Category", "Tag3")]
+  public bool RevRevProp(int[] xs)
+  {
+    return xs.Reverse().Reverse().SequenceEqual(xs);
+  }
+  
+  [Property]
+  public bool IdRevProp(double[] xs)
+  {
+    return xs.Reverse().SequenceEqual(xs);
+  }
+  
+  [Property] [Trait("Category", "Tag3")]
+  public bool SortRevProp(double[] xs)
+  {
+    double[] ys = xs.Clone() as double[];
+    Array.Sort(ys);
+    Array.Reverse(xs);
+    Array.Sort(xs);
+    return xs.SequenceEqual(ys);
+  }
+  
+  [Property] [Trait("Category", "Tag3")]
+  public bool MinSortHeadPropA(FsCheck.NonEmptyArray<FsCheck.NormalFloat> xs)
+  {
+    double[] ys = xs.Get.Select(e => e.Get).ToArray();
+    Array.Sort(ys);
+    return InEpsilon(xs.Get.Min().Get, ys[0], epsilon * ys[0]);
+  }
+  
+  [Property(Arbitrary = new[] { typeof(MyArbitraries) })]
+    [Trait("Category", "Tag3")]
+  public bool MinSortHeadPropB(IEnumerable<double> xs)
+  {
+    double[] ys = xs.Select(e => e).ToArray();
+    Array.Sort(ys);
+    return InEpsilon(xs.Min(), ys[0], epsilon * xs.Min());
+  }
 }
 
 }

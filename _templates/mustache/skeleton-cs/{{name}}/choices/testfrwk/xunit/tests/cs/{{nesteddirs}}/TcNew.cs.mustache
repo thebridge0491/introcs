@@ -7,74 +7,72 @@ using Xunit;
 using {{parentcap}}{{^parentcap}}Introcs{{/parentcap}}{{joiner}}{{^joiner}}.{{/joiner}}{{projectcap}}{{^projectcap}}Util{{/projectcap}};
 
 public class TcNew : Base.ClsBase {
-    private float epsilon = 0.001f; //1.20e-7f;
+  private float epsilon = 0.001f; //1.20e-7f;
+  
+  public bool InEpsilon(double a, double b, double tolerance = 0.001)
+  {
+    double delta = Math.Abs(tolerance);
+    //return (a - delta) <= b && (a + delta) >= b;
+    return !((a + delta) < b) && !((b + delta) < a);
+  }
+  
+  public TcNew()
+  {
+    base.SetUp();
+    output.WriteLine("SetUp");
+  }
+  
+  public override void Dispose()
+  {
+    output.WriteLine("TearDown");
+    base.TearDown();
+    output.Write("Dispose({0}) / ", GetType());
+    base.Dispose();
+  }
     
-    public bool InEpsilon(double a, double b, double tolerance = 0.001)
-    {
-		double delta = Math.Abs(tolerance);
-		//return (a - delta) <= b && (a + delta) >= b;
-		return !((a + delta) < b) && !((b + delta) < a);
-	}
-	
-    public TcNew()
-    {
-		base.SetUp();
-        output.WriteLine("SetUp");
-	}
-	
-    public override void Dispose()
-    {
-		output.WriteLine("TearDown");
-        base.TearDown();
-        output.Write("Dispose({0}) / ", GetType());
-        base.Dispose();
-    }
-    
-	[Fact] [Trait("Category", "Tag1")]
-	public void MethodTest()
-	{
-	    Assert.Equal(2 * 2, 4);
-	}
-	
-	[Fact] [Trait("Category", "Tag1")]
-	public void FloatTest()
-	{
-	    Assert.True(InEpsilon(4.0f, 4.0f, 4.0f * epsilon));
-	}
-	
-	[Fact] [Trait("Category", "Tag1")]
-	public void StringTest()
-	{
-	    string str1 = "Hello", str2 = "hello";
-	    Assert.True(str1.Equals(str2, StringComparison.OrdinalIgnoreCase));
-	}
-	
-	[Fact] [Trait("Category", "Tag2")]
-	public void BadTest()
-	{
-	    Assert.Equal(4, 5);
-	}
-	
-	[Fact] [Trait("Category", "Tag2")]
-	public void FailedTest()
-	{
-		Assert.True(false);
-	}
-	
-	[Fact(Skip="ignored test")] [Trait("Category", "Tag2")]
-	public void IgnoredTest()
-	{
-		throw new Exception();
-	}
-	
-	[Fact]
-	public void ExpectAnException()
-	{
-		Exception exc = Assert.Throws<InvalidOperationException>(
-			delegate { throw new InvalidOperationException(); });
-		Assert.NotNull(exc);
-		Assert.IsType<InvalidOperationException>(exc);
-	}
+  [Fact] [Trait("Category", "Tag1")]
+  public void MethodTest()
+  {
+    Assert.Equal(2 * 2, 4);
+  }
+  
+  [Fact] [Trait("Category", "Tag1")]
+  public void FloatTest()
+  {
+    Assert.True(InEpsilon(4.0f, 4.0f, 4.0f * epsilon));
+  }
+  
+  [Fact] [Trait("Category", "Tag1")]
+  public void StringTest()
+  {
+    string str1 = "Hello", str2 = "hello";
+    Assert.True(str1.Equals(str2, StringComparison.OrdinalIgnoreCase));
+  }
+  
+  [Fact] [Trait("Category", "Tag2")]
+  public void BadTest()
+  {
+    Assert.Equal(4, 5);
+  }
+  
+  [Fact] [Trait("Category", "Tag2")]
+  public void FailedTest()
+  {
+    Assert.True(false);
+  }
+  
+  [Fact(Skip="ignored test")] [Trait("Category", "Tag2")]
+  public void IgnoredTest()
+  {
+    throw new Exception();
+  }
+  
+  [Fact]
+  public void ExpectAnException()
+  {
+    Assert.ThrowsAsync<InvalidOperationException>(() => 
+      throw new InvalidOperationException());
+  }
 }
 
 }

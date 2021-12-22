@@ -1,0 +1,162 @@
+#!/usr/bin/env lua
+
+-- Single package premake.lua script.
+if path.getbasename(_WORKING_DIR) ~= "build" then
+	printf("Error: cd build ; premake --file=../premake.lua gmake")
+	os.exit(EXIT_FAILURE)
+end
+
+if path.getdirectory(_WORKING_DIR) ~= os.getcwd() then
+	builddir = path.join(_WORKING_DIR, path.getbasename(os.getcwd()))
+else
+	require("premake-targets")
+	builddir = "build"
+end
+
+_OPTIONS["dotnet"] = (_OPTIONS["dotnet"] or "msnet") -- msnet|mono|pnet
+for k,v in pairs(_OPTIONS) do print(k, v) end ; print("")
+
+--local exelauncher, errorCode = os.outputof("which mono")
+local exelauncher = os.outputof("which mono")
+local commoncs_args = "/langversion:7.1 /nologo /checked /warn:4 /lib:.,$$HOME/nuget/packages"
+
+-- log4net netstandard
+reqs_src = "fsharp.core ini-parser-netstandard{{#executable}} log4net system.diagnostics.textwritertracelistener mono.options newtonsoft.json yamldotnet{{/executable}}"
+
+-- -- fsunit.xunit
+-- reqs_tests = "xunit.core fscheck fscheck.xunit"
+-- fsunit nunitlite
+reqs_tests = "nunit fscheck fscheck.nunit"
+
+solution "{{parentcap}}{{^parentcap}}Introcs{{/parentcap}}.{{projectcap}}{{^projectcap}}Util{{/projectcap}}"
+	configurations { "Debug", "Release" }
+	configuration "Debug"
+		targetdir "bin/Debug"
+		objdir "obj/Debug"
+		defines { "DEBUG" }
+		flags { "Symbols", "ExtraWarnings" }
+		--buildoptions { "--coverage" }
+		--linkoptions { "--coverage" }
+	configuration "Release"
+		targetdir "bin/Release"
+		objdir "obj/Release"
+		defines { "NDEBUG" }
+		flags { "Optimize" }
+	location (builddir)
+	--targetdir (builddir)
+	language "C#" -- C[++] ASM C#
+	--framework "4.5"
+	--linkoptions { string.format("-Wl,-rpath,'$$ORIGIN/':%s/lib",
+  --      _OPTIONS["prefix"] or "/usr/local") }
+  --linkoptions {  }
+	solution().parent = "{{parent}}{{^parent}}introcs{{/parent}}"
+	solution().version = "{{version}}{{^version}}0.1.0{{/version}}"
+	--solution().somajor, solution().sominor = string.match(solution().version, "([^.]+)\.([^.]+)")
+	solution().description = "{{description}}{{^description}}Utilities sub-package for CSharp Intro examples project.{{/description}}"
+	for k,v in pairs(solution()) do print(k,v) end ; print("")
+
+{{#executable}}--[=[{{/executable}}
+	project (solution().name)
+		kind "SharedLib"
+		language "C#"
+		--uuid "B095E90D-9A2D-4C6B-3E61-5B3796086B2B"
+    uuid (os.uuid(solution().name))
+    excludes { "**/bin/**", "**/obj/**" }
+		files { "src/**/*.cs", "src/**.cs" }
+		--includedirs { "include", "src" }
+		buildoptions { string.format("%s /delaysign /keyfile:../codesign.snk.pub `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --libs %s`",
+		  commoncs_args, reqs_src) }
+		--links { "System", "System.Core", "Microsoft.CSharp" }
+		--linkoptions { string.format("%s /delaysign /keyfile:../codesign.snk.pub `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --libs %s`",
+		--  commoncs_args, reqs_src) }
+    configuration "Debug"
+      --targetdir (builddir .. "/lib")
+      prebuildcommands {
+        string.format("cp -v `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --variable=Assemblies %s %s` ../bin/Debug/", reqs_src, reqs_tests)
+      }
+      postbuildcommands {
+        string.format("gmake config=%s nugetpack", "debug")
+      }
+    configuration "Release"
+      --targetdir (builddir .. "/lib")
+      prebuildcommands {
+        string.format("cp `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --variable=Assemblies %s %s` ../bin/Release/", reqs_src, reqs_tests)
+      }
+      postbuildcommands {
+        string.format("gmake config=%s nugetpack", "release")
+      }
+    for k,v in pairs(project()) do print(k,v) end ; print("")
+{{#executable}}]=]{{/executable}}
+{{#executable}}
+	project (solution().name)
+		kind "ConsoleApp"
+		language "C#"
+    --uuid "B095E90D-9A2D-4C6B-3E61-5B3796086B2B"
+    uuid (os.uuid(solution().name))
+		excludes { "**/bin/**", "**/obj/**" }
+    files { "src/**/*.cs", "src/**.cs" }
+		--includedirs { "src" }
+		--libdirs { builddir .. "/lib" }
+		buildoptions { string.format("%s /delaysign /keyfile:../codesign.snk.pub /main:%s.App `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --libs %s`",
+		  commoncs_args, solution().name, reqs_src) }
+		--links { "System", "System.Core", "Microsoft.CSharp" }
+		--linkoptions { string.format("%s /delaysign /keyfile:../codesign.snk.pub /main:%s.App `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --libs %s`",
+		--  commoncs_args, solution().name, reqs_src) }
+    configuration "Debug"
+      --targetdir (builddir .. "/bin")
+      prebuildcommands {
+        string.format("cp -v `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --variable=Assemblies %s %s` ../bin/Debug/", reqs_src, reqs_tests)
+      }
+      postbuildcommands {
+        string.format("gmake config=%s nugetpack", "debug")
+      }
+    configuration "Release"
+      --targetdir (builddir .. "/bin")
+      prebuildcommands {
+        string.format("cp `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --variable=Assemblies %s %s` ../bin/Release/", reqs_src, reqs_tests)
+      }
+      postbuildcommands {
+        string.format("gmake config=%s nugetpack", "release")
+      }
+    for k,v in pairs(project()) do print(k,v) end ; print("")
+{{/executable}}
+	if "ON" == (_OPTIONS["buildtest"] or "ON") then
+		project (solution().name .. ".Tests")
+			--targetdir (builddir .. "/tests")
+			kind "SharedLib"
+			language "C#"
+			excludes { "**/bin/**", "**/obj/**" }
+      files { "tests/**/*.cs", "tests/**.cs" }
+			--includedirs { "include" }
+			--libdirs { builddir .. "/lib" }
+		  buildoptions { string.format("%s `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --libs %s` /r:%s.dll",
+		    commoncs_args, reqs_tests, solution().name) }
+		  --links { "System", "System.Core", "Microsoft.CSharp" }
+		  --linkoptions { string.format("%s `pkg-config --with-path=$$HOME/.local/lib/pkgconfig --libs %s` /r:%s.dll",
+		  --  commoncs_args, reqs_tests, solution().name) }
+	end
+
+newaction { trigger = "restore", description = "Restore",
+	execute = function ()
+		os.execute(string.format("cd %s ; %s $$HOME/bin/nuget.exe install -framework %s -excludeversion -o $$HOME/nuget/packages packages.config ; %s $$HOME/bin/nuget.exe list -source $$HOME/.nuget/packages ; sleep 3",
+			builddir, exelauncher, _OPTIONS["framework"] or "net471", exelauncher))
+	end
+}
+
+newaction { trigger = "nugetpack", description = "Nuget pack",
+	execute = function ()
+		local wsp = solution()
+		os.execute(string.format("cd %s ; rm -rf nupkg", builddir))
+		os.execute(string.format("mkdir -p nupkg/content nupkg/lib/%s nupkg/build",
+		  _OPTIONS["framework"] or "net471"))
+		os.execute(string.format("cp -fR %s/%s.nuspec %s/LICENSE nupkg/",
+		  wsp.basedir, wsp.name, wsp.basedir))
+		os.execute(string.format("cp -fR %s/LICENSE %s/resources nupkg/content/",
+		  wsp.basedir, wsp.basedir))
+		os.execute(string.format("cp -fR %s.dll %s.?db %s.xml nupkg/lib/%s/",
+		  wsp.name, wsp.name, wsp.name, _OPTIONS["framework"] or "net471"))
+		os.execute(string.format("cp -fR %s.exe nupkg/build/", wsp.name))
+		os.execute(string.format("cd nupkg ; %s $$HOME/bin/nuget.exe pack -excludeemptydirectories -packagesdirectory $$HOME/.nuget/packages -outputdirectory $$TARGETDIR %s.nuspec",
+		  exelauncher, wsp.name))
+	end
+}
