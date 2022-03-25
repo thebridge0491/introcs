@@ -89,7 +89,7 @@ newaction { trigger = "package", description = "Package source archive(s)",
 				os.execute(string.format("rm -f %s ; zip -9 -q -r %s %s",
 					distdir .. ".zip", distdir .. ".zip", distdir))
 			else
-				os.execute(string.format("rm -f %s ; tar --posix -L -caf %s %s",
+				os.execute(string.format("rm -f %s ; tar --posix -h -caf %s %s",
 					distdir .. "." .. fmt, distdir .. "." .. fmt, distdir))
 			end
 		end

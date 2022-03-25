@@ -186,7 +186,7 @@ custom_target('package', command: ['sh', '-xc'] +
 	      zip -9 -q -r @1@.zip @1@ ;;
 	    *) echo "### @1@.$fmt ###" ;
 	      rm -f @1@.$fmt ;
-	      tar --posix -L -caf @1@.$fmt @1@ ;;
+	      tar --posix -h -caf @1@.$fmt @1@ ;;
 	  esac
 	done'''.format(fmt_extns, distdir)],
 	output: ['package'], input: [pre_dist])
